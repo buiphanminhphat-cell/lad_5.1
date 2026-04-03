@@ -55,7 +55,7 @@
             height: 2px;
             background: #94a3b8;
             width: 95%;
-            margin: 10px auto;
+            margin: 8px auto;
             opacity: 0.5;
         }
 
@@ -78,21 +78,28 @@
     <div class="lcd-frame">
         <div class="lcd-screen">
             
+            <!-- Dòng tên tiêu đề -->
+            <div class="text-center mb-1">
+                <h1 class="text-[14px] font-black text-slate-600 tracking-[0.2em] uppercase italic">Era Smart Digital Dashboard</h1>
+            </div>
+
+            <div class="line-divider" style="margin-top: 0;"></div>
+
             <!-- Hàng 1: Ngày tháng & Icons -->
-            <div class="flex justify-between items-center px-2">
+            <div class="flex justify-between items-center px-2 mt-1">
                 <div class="flex flex-col">
                     <div class="flex gap-6 text-[9px] font-bold text-slate-500 uppercase tracking-tighter">
                         <span>DAY</span>
                         <span>MONTH</span>
                         <span>YEAR</span>
                     </div>
-                    <div id="current-date" class="digital-font text-4xl lcd-text-main tracking-widest">--/--/----</div>
+                    <div id="current-date" class="digital-font text-3xl lcd-text-main tracking-widest">--/--/----</div>
                 </div>
                 <div class="flex gap-3 items-center text-slate-700">
-                    <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                    <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M16 20H8V6H16V20ZM16.5 4H15V2H9V4H7.5C6.67 4 6 4.67 6 5.5V20.5C6 21.33 6.67 22 7.5 22H16.5C17.33 22 18 21.33 18 20.5V5.5C18 4.67 17.33 4H16.5Z" />
                     </svg>
-                    <svg id="wifi-icon" class="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                    <svg id="wifi-icon" class="w-7 h-7 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 3C7.31 3 3.07 4.9 0 8l12 13 12-13C20.93 4.9 16.69 3 12 3Z" />
                     </svg>
                 </div>
@@ -102,22 +109,22 @@
 
             <!-- Hàng 2: Nhiệt độ & Độ ẩm -->
             <div class="flex justify-around items-center flex-1">
-                <!-- Cụm Nhiệt độ (V2) -->
+                <!-- Cụm Nhiệt độ (Gắn với Tiêu đề '1' hoặc Pin V2) -->
                 <div class="flex items-center">
                     <div class="flex items-start">
-                        <span id="temp-integer" class="digital-font text-8xl lcd-text-main leading-none">--</span>
+                        <span id="temp-integer" class="digital-font text-7xl lcd-text-main leading-none">--</span>
                         <div class="temp-decimal-container">
-                            <span class="text-xl font-bold -mb-1">°C</span>
-                            <span id="temp-decimal" class="digital-font text-4xl lcd-text-main leading-none">-</span>
+                            <span class="text-lg font-bold -mb-1">°C</span>
+                            <span id="temp-decimal" class="digital-font text-3xl lcd-text-main leading-none">-</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Cụm Độ ẩm (V3) -->
+                <!-- Cụm Độ ẩm (Gắn với Tiêu đề '2' hoặc Pin V3) -->
                 <div class="flex items-center">
                     <div class="flex items-baseline">
-                        <span id="humi-value" class="digital-font text-8xl lcd-text-main leading-none">--</span>
-                        <span class="text-3xl font-bold ml-1">%</span>
+                        <span id="humi-value" class="digital-font text-7xl lcd-text-main leading-none">--</span>
+                        <span class="text-2xl font-bold ml-1">%</span>
                     </div>
                 </div>
             </div>
@@ -125,10 +132,10 @@
             <div class="line-divider"></div>
 
             <!-- Hàng 3: Giờ lớn -->
-            <div class="flex justify-center items-center py-4">
-                <div class="digital-font text-[120px] lcd-text-main flex items-center leading-none tracking-tighter">
+            <div class="flex justify-center items-center py-2">
+                <div class="digital-font text-[100px] lcd-text-main flex items-center leading-none tracking-tighter">
                     <span id="time-hh">00</span>
-                    <span class="blink mx-1" style="transform: translateY(-8px);">:</span>
+                    <span class="blink mx-1" style="transform: translateY(-6px);">:</span>
                     <span id="time-mm">00</span>
                 </div>
             </div>
@@ -136,7 +143,6 @@
         </div>
     </div>
 
-    <!-- Load ERa Widget script with an onload handler to ensure EraWidget is defined -->
     <script src="https://www.unpkg.com/@eoh-jsc/era-widget@1.1.3/dist/era-widget.js" onload="initWidget()"></script>
     <script>
         let eraWidget = null;
@@ -159,14 +165,9 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // This function is called once the ERa Widget script has finished loading
         function initWidget() {
             try {
-                if (typeof EraWidget === 'undefined') {
-                    console.error("EraWidget script loaded but EraWidget is still undefined.");
-                    return;
-                }
-
+                if (typeof EraWidget === 'undefined') return;
                 eraWidget = new EraWidget();
 
                 eraWidget.onConfiguration((configuration) => {
@@ -181,9 +182,10 @@
                         if (!entityValue) return;
 
                         const value = entityValue.value;
+                        const name = (entity.name || "").toString().trim();
                         
-                        // Handle Virtual Pin V2 (Temperature)
-                        if (entity.virtualPin === 'V2') {
+                        // Cập nhật Nhiệt độ: Nhận diện qua Virtual Pin V2 HOẶC Tiêu đề là "1"
+                        if (entity.virtualPin === 'V2' || name === '1') {
                             const valNum = parseFloat(value).toFixed(1);
                             const parts = valNum.split('.');
                             const intEl = document.getElementById('temp-integer');
@@ -192,8 +194,8 @@
                             if (decEl) decEl.innerText = parts[1] || '0';
                         }
 
-                        // Handle Virtual Pin V3 (Humidity)
-                        if (entity.virtualPin === 'V3') {
+                        // Cập nhật Độ ẩm: Nhận diện qua Virtual Pin V3 HOẶC Tiêu đề là "2"
+                        if (entity.virtualPin === 'V3' || name === '2') {
                             const humiEl = document.getElementById('humi-value');
                             if (humiEl) humiEl.innerText = Math.round(value);
                         }
@@ -202,7 +204,7 @@
 
                 eraWidget.ready();
             } catch (err) {
-                console.error("Error initializing EraWidget:", err);
+                console.error("Lỗi khởi tạo:", err);
             }
         }
     </script>

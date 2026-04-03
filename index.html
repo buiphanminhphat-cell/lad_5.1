@@ -15,8 +15,9 @@
             background: #e2e8f0;
             display: flex;
             align-items: center;
-            justify-center;
-            min-height: screen;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
         }
 
         .digital-font {
@@ -64,7 +65,6 @@
         }
         .blink { animation: blink 1s infinite; }
 
-        /* Vị trí số thập phân nhỏ cho nhiệt độ */
         .temp-decimal-container {
             display: flex;
             flex-direction: column;
@@ -73,7 +73,7 @@
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
+<body>
 
     <div class="lcd-frame">
         <div class="lcd-screen">
@@ -86,15 +86,13 @@
                         <span>MONTH</span>
                         <span>YEAR</span>
                     </div>
-                    <div id="current-date" class="digital-font text-4xl lcd-text-main tracking-widest">25/08/2022</div>
+                    <div id="current-date" class="digital-font text-4xl lcd-text-main tracking-widest">--/--/----</div>
                 </div>
                 <div class="flex gap-3 items-center text-slate-700">
-                    <!-- Pin -->
                     <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M16 20H8V6H16V20ZM16.5 4H15V2H9V4H7.5C6.67 4 6 4.67 6 5.5V20.5C6 21.33 6.67 22 7.5 22H16.5C17.33 22 18 21.33 18 20.5V5.5C18 4.67 17.33 4H16.5Z" />
                     </svg>
-                    <!-- Wifi -->
-                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                    <svg id="wifi-icon" class="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 3C7.31 3 3.07 4.9 0 8l12 13 12-13C20.93 4.9 16.69 3 12 3Z" />
                     </svg>
                 </div>
@@ -104,27 +102,21 @@
 
             <!-- Hàng 2: Nhiệt độ & Độ ẩm -->
             <div class="flex justify-around items-center flex-1">
-                <!-- Cụm Nhiệt độ -->
+                <!-- Cụm Nhiệt độ (V2) -->
                 <div class="flex items-center">
-                    <svg class="w-8 h-8 text-slate-600 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
                     <div class="flex items-start">
-                        <span id="temp-integer" class="digital-font text-8xl lcd-text-main leading-none">26</span>
+                        <span id="temp-integer" class="digital-font text-8xl lcd-text-main leading-none">--</span>
                         <div class="temp-decimal-container">
                             <span class="text-xl font-bold -mb-1">°C</span>
-                            <span id="temp-decimal" class="digital-font text-4xl lcd-text-main leading-none">8</span>
+                            <span id="temp-decimal" class="digital-font text-4xl lcd-text-main leading-none">-</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Cụm Độ ẩm -->
+                <!-- Cụm Độ ẩm (V3) -->
                 <div class="flex items-center">
-                    <svg class="w-8 h-8 text-slate-600 mr-1" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 21.5C8.41 21.5 5.5 18.59 5.5 15C5.5 12.38 7.55 9.12 12 4.41C16.45 9.12 18.5 12.38 18.5 15C18.5 18.59 15.59 21.5 12 21.5ZM12 6.67C9.07 10.05 7.5 12.78 7.5 15C7.5 17.48 9.52 19.5 12 19.5C14.48 19.5 16.5 17.48 16.5 15C16.5 12.78 14.93 10.05 12 6.67Z" />
-                    </svg>
                     <div class="flex items-baseline">
-                        <span id="humi-value" class="digital-font text-8xl lcd-text-main leading-none">65</span>
+                        <span id="humi-value" class="digital-font text-8xl lcd-text-main leading-none">--</span>
                         <span class="text-3xl font-bold ml-1">%</span>
                     </div>
                 </div>
@@ -135,87 +127,82 @@
             <!-- Hàng 3: Giờ lớn -->
             <div class="flex justify-center items-center py-4">
                 <div class="digital-font text-[120px] lcd-text-main flex items-center leading-none tracking-tighter">
-                    <span id="time-hh">08</span>
+                    <span id="time-hh">00</span>
                     <span class="blink mx-1" style="transform: translateY(-8px);">:</span>
-                    <span id="time-mm">26</span>
+                    <span id="time-mm">00</span>
                 </div>
             </div>
 
         </div>
     </div>
 
-    <script src="https://www.unpkg.com/@eoh-jsc/era-widget@1.1.3/dist/era-widget.js" onload="initEraWidget()"></script>
+    <!-- Load ERa Widget script with an onload handler to ensure EraWidget is defined -->
+    <script src="https://www.unpkg.com/@eoh-jsc/era-widget@1.1.3/dist/era-widget.js" onload="initWidget()"></script>
     <script>
         let eraWidget = null;
         let config = null;
-
-        // Hàm xóa dấu tiếng Việt để so sánh tên chính xác
-        function removeVietnameseTones(str) {
-            return str.normalize('NFD')
-                      .replace(/[\u0300-\u036f]/g, '')
-                      .replace(/đ/g, 'd').replace(/Đ/g, 'D')
-                      .toLowerCase()
-                      .trim();
-        }
 
         function updateClock() {
             const now = new Date();
             const d = String(now.getDate()).padStart(2, '0');
             const m = String(now.getMonth() + 1).padStart(2, '0');
             const y = now.getFullYear();
-            document.getElementById('current-date').innerText = `${d}/${m}/${y}`;
+            const dateEl = document.getElementById('current-date');
+            const hhEl = document.getElementById('time-hh');
+            const mmEl = document.getElementById('time-mm');
             
-            document.getElementById('time-hh').innerText = String(now.getHours()).padStart(2, '0');
-            document.getElementById('time-mm').innerText = String(now.getMinutes()).padStart(2, '0');
+            if (dateEl) dateEl.innerText = `${d}/${m}/${y}`;
+            if (hhEl) hhEl.innerText = String(now.getHours()).padStart(2, '0');
+            if (mmEl) mmEl.innerText = String(now.getMinutes()).padStart(2, '0');
         }
 
-        updateClock();
         setInterval(updateClock, 1000);
+        updateClock();
 
-        function initEraWidget() {
-            const checkExist = setInterval(function() {
-                if (typeof EraWidget !== 'undefined') {
-                    clearInterval(checkExist);
-                    startWidget();
-                }
-            }, 100);
-        }
-
-        function startWidget() {
+        // This function is called once the ERa Widget script has finished loading
+        function initWidget() {
             try {
+                if (typeof EraWidget === 'undefined') {
+                    console.error("EraWidget script loaded but EraWidget is still undefined.");
+                    return;
+                }
+
                 eraWidget = new EraWidget();
-                
+
                 eraWidget.onConfiguration((configuration) => {
                     config = configuration;
                 });
 
                 eraWidget.onValues((values) => {
                     if (!config || !config.entities) return;
-                    
-                    config.entities.forEach(entity => {
-                        const value = values[entity.id]?.value;
-                        if (value === undefined) return;
 
-                        const entityNameNormalized = removeVietnameseTones(entity.name || "");
+                    config.entities.forEach(entity => {
+                        const entityValue = values[entity.id];
+                        if (!entityValue) return;
+
+                        const value = entityValue.value;
                         
-                        // Nhận diện Nhiệt độ (V2 hoặc tên "nhiet do")
-                        if (entity.virtualPin === 'V2' || entityNameNormalized.includes('nhiet do')) {
+                        // Handle Virtual Pin V2 (Temperature)
+                        if (entity.virtualPin === 'V2') {
                             const valNum = parseFloat(value).toFixed(1);
                             const parts = valNum.split('.');
-                            document.getElementById('temp-integer').innerText = parts[0];
-                            document.getElementById('temp-decimal').innerText = parts[1] || '0';
+                            const intEl = document.getElementById('temp-integer');
+                            const decEl = document.getElementById('temp-decimal');
+                            if (intEl) intEl.innerText = parts[0];
+                            if (decEl) decEl.innerText = parts[1] || '0';
                         }
 
-                        // Nhận diện Độ ẩm (V3 hoặc tên "do am")
-                        if (entity.virtualPin === 'V3' || entityNameNormalized.includes('do am')) {
-                            document.getElementById('humi-value').innerText = Math.round(value);
+                        // Handle Virtual Pin V3 (Humidity)
+                        if (entity.virtualPin === 'V3') {
+                            const humiEl = document.getElementById('humi-value');
+                            if (humiEl) humiEl.innerText = Math.round(value);
                         }
                     });
                 });
 
                 eraWidget.ready();
-            } catch (e) {
-                console.error("EraWidget Start Error:", e);
+            } catch (err) {
+                console.error("Error initializing EraWidget:", err);
             }
         }
     </script>

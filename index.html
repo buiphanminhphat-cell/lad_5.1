@@ -73,7 +73,7 @@
     <div class="top">
         <div>
             <div>DAY &nbsp;&nbsp;&nbsp; MONTH &nbsp;&nbsp;&nbsp; YEAR</div>
-            <div class="date">25/08/2022</div>
+            <div class="date" id="date">--/--/----</div>
         </div>
         <div class="icons">📶 🔋</div>
     </div>
@@ -81,14 +81,60 @@
     <hr>
 
     <div class="middle">
-        <div class="temp">🌡️ 26.8°C</div>
-        <div class="humidity">💧 65%</div>
+        <div class="temp">🌡️ <span id="nhietDo">--</span></div>
+        <div class="humidity">💧 <span id="doAm">--</span></div>
     </div>
 
     <hr>
 
-    <div class="bottom">08:26</div>
+    <div class="bottom" id="time">--:--</div>
 </div>
+
+<script src="https://www.unpkg.com/@eohjsc/era-widget@1.1.3/src/index.js"></script>
+<script>
+    const temp = document.getElementById('nhietDo');
+    const humi = document.getElementById('doAm');
+    const timeEl = document.getElementById('time');
+    const dateEl = document.getElementById('date');
+
+    let configTemp = null, configHumi = null;
+
+    const eraWidget = new EraWidget();
+    eraWidget.init({
+      needRealtimeConfigs: true,
+      maxRealtimeConfigsCount: 2,
+
+      onConfiguration: (configuration) => {
+        configTemp = configuration.realtime_configs[0];
+        configHumi = configuration.realtime_configs[1];
+      },
+
+      onValues: (values) => {
+        if (configTemp && values[configTemp.id]) {
+            temp.innerHTML = values[configTemp.id].value + '°C';
+        }
+        if (configHumi && values[configHumi.id]) {
+            humi.innerHTML = values[configHumi.id].value + '%';
+        }
+      }
+    });
+
+    // Clock realtime
+    function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+
+        timeEl.innerHTML = `${hours}:${minutes}`;
+        dateEl.innerHTML = `${day}/${month}/${year}`;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+</script>
 
 </body>
 </html>

@@ -1,212 +1,94 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Era Smart Digital Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @font-face {
-            font-family: 'Digital';
-            src: url('https://fonts.cdnfonts.com/s/14351/DS-DIGI.woff') format('woff');
-        }
-        
-        body {
-            background: #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Display</title>
+<style>
+    body {
+        background: #dfe6ee;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
 
-        .digital-font {
-            font-family: 'Digital', sans-serif;
-            letter-spacing: 1px;
-        }
+    .card {
+        width: 420px;
+        background: linear-gradient(145deg, #eef3f8, #d6dde5);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 10px 10px 20px rgba(0,0,0,0.2),
+                    -10px -10px 20px rgba(255,255,255,0.7);
+    }
 
-        .lcd-frame {
-            background: #f8fafc;
-            border: 12px solid #cbd5e1;
-            border-radius: 40px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1), inset 0 2px 5px rgba(255,255,255,0.8);
-            width: 420px;
-            height: 420px;
-            padding: 20px;
-        }
+    .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        color: #333;
+    }
 
-        .lcd-screen {
-            background: #eff6ff;
-            border: 3px solid #94a3b8;
-            border-radius: 20px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            padding: 15px;
-            position: relative;
-            box-shadow: inset 2px 2px 10px rgba(0,0,0,0.05);
-        }
+    .date {
+        font-size: 28px;
+        font-weight: bold;
+    }
 
-        .lcd-text-main {
-            color: #334155;
-        }
+    .icons {
+        font-size: 20px;
+    }
 
-        .line-divider {
-            height: 2px;
-            background: #94a3b8;
-            width: 95%;
-            margin: 8px auto;
-            opacity: 0.5;
-        }
+    hr {
+        margin: 15px 0;
+        border: none;
+        border-top: 1px solid #aaa;
+    }
 
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.1; }
-        }
-        .blink { animation: blink 1s infinite; }
+    .middle {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-        .temp-decimal-container {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            margin-left: 2px;
-        }
-    </style>
+    .temp {
+        font-size: 50px;
+    }
+
+    .humidity {
+        font-size: 50px;
+    }
+
+    .bottom {
+        text-align: center;
+        font-size: 70px;
+        font-weight: bold;
+    }
+</style>
 </head>
 <body>
 
-    <div class="lcd-frame">
-        <div class="lcd-screen">
-            
-            <!-- Dòng tên tiêu đề -->
-            <div class="text-center mb-1">
-                <h1 class="text-[14px] font-black text-slate-600 tracking-[0.2em] uppercase italic">Era Smart Digital Dashboard</h1>
-            </div>
-
-            <div class="line-divider" style="margin-top: 0;"></div>
-
-            <!-- Hàng 1: Ngày tháng & Icons -->
-            <div class="flex justify-between items-center px-2 mt-1">
-                <div class="flex flex-col">
-                    <div class="flex gap-6 text-[9px] font-bold text-slate-500 uppercase tracking-tighter">
-                        <span>DAY</span>
-                        <span>MONTH</span>
-                        <span>YEAR</span>
-                    </div>
-                    <div id="current-date" class="digital-font text-3xl lcd-text-main tracking-widest">--/--/----</div>
-                </div>
-                <div class="flex gap-3 items-center text-slate-700">
-                    <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M16 20H8V6H16V20ZM16.5 4H15V2H9V4H7.5C6.67 4 6 4.67 6 5.5V20.5C6 21.33 6.67 22 7.5 22H16.5C17.33 22 18 21.33 18 20.5V5.5C18 4.67 17.33 4H16.5Z" />
-                    </svg>
-                    <svg id="wifi-icon" class="w-7 h-7 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 3C7.31 3 3.07 4.9 0 8l12 13 12-13C20.93 4.9 16.69 3 12 3Z" />
-                    </svg>
-                </div>
-            </div>
-
-            <div class="line-divider"></div>
-
-            <!-- Hàng 2: Nhiệt độ & Độ ẩm -->
-            <div class="flex justify-around items-center flex-1">
-                <!-- Cụm Nhiệt độ (Gắn với Tiêu đề '1' hoặc Pin V2) -->
-                <div class="flex items-center">
-                    <div class="flex items-start">
-                        <span id="temp-integer" class="digital-font text-7xl lcd-text-main leading-none">--</span>
-                        <div class="temp-decimal-container">
-                            <span class="text-lg font-bold -mb-1">°C</span>
-                            <span id="temp-decimal" class="digital-font text-3xl lcd-text-main leading-none">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cụm Độ ẩm (Gắn với Tiêu đề '2' hoặc Pin V3) -->
-                <div class="flex items-center">
-                    <div class="flex items-baseline">
-                        <span id="humi-value" class="digital-font text-7xl lcd-text-main leading-none">--</span>
-                        <span class="text-2xl font-bold ml-1">%</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="line-divider"></div>
-
-            <!-- Hàng 3: Giờ lớn -->
-            <div class="flex justify-center items-center py-2">
-                <div class="digital-font text-[100px] lcd-text-main flex items-center leading-none tracking-tighter">
-                    <span id="time-hh">00</span>
-                    <span class="blink mx-1" style="transform: translateY(-6px);">:</span>
-                    <span id="time-mm">00</span>
-                </div>
-            </div>
-
+<div class="card">
+    <div class="top">
+        <div>
+            <div>DAY &nbsp;&nbsp;&nbsp; MONTH &nbsp;&nbsp;&nbsp; YEAR</div>
+            <div class="date">25/08/2022</div>
         </div>
+        <div class="icons">📶 🔋</div>
     </div>
 
-    <script src="https://www.unpkg.com/@eoh-jsc/era-widget@1.1.3/dist/era-widget.js" onload="initWidget()"></script>
-    <script>
-        let eraWidget = null;
-        let config = null;
+    <hr>
 
-        function updateClock() {
-            const now = new Date();
-            const d = String(now.getDate()).padStart(2, '0');
-            const m = String(now.getMonth() + 1).padStart(2, '0');
-            const y = now.getFullYear();
-            const dateEl = document.getElementById('current-date');
-            const hhEl = document.getElementById('time-hh');
-            const mmEl = document.getElementById('time-mm');
-            
-            if (dateEl) dateEl.innerText = `${d}/${m}/${y}`;
-            if (hhEl) hhEl.innerText = String(now.getHours()).padStart(2, '0');
-            if (mmEl) mmEl.innerText = String(now.getMinutes()).padStart(2, '0');
-        }
+    <div class="middle">
+        <div class="temp">🌡️ 26.8°C</div>
+        <div class="humidity">💧 65%</div>
+    </div>
 
-        setInterval(updateClock, 1000);
-        updateClock();
+    <hr>
 
-        function initWidget() {
-            try {
-                if (typeof EraWidget === 'undefined') return;
-                eraWidget = new EraWidget();
+    <div class="bottom">08:26</div>
+</div>
 
-                eraWidget.onConfiguration((configuration) => {
-                    config = configuration;
-                });
-
-                eraWidget.onValues((values) => {
-                    if (!config || !config.entities) return;
-
-                    config.entities.forEach(entity => {
-                        const entityValue = values[entity.id];
-                        if (!entityValue) return;
-
-                        const value = entityValue.value;
-                        const name = (entity.name || "").toString().trim();
-                        
-                        // Cập nhật Nhiệt độ: Nhận diện qua Virtual Pin V2 HOẶC Tiêu đề là "1"
-                        if (entity.virtualPin === 'V2' || name === '1') {
-                            const valNum = parseFloat(value).toFixed(1);
-                            const parts = valNum.split('.');
-                            const intEl = document.getElementById('temp-integer');
-                            const decEl = document.getElementById('temp-decimal');
-                            if (intEl) intEl.innerText = parts[0];
-                            if (decEl) decEl.innerText = parts[1] || '0';
-                        }
-
-                        // Cập nhật Độ ẩm: Nhận diện qua Virtual Pin V3 HOẶC Tiêu đề là "2"
-                        if (entity.virtualPin === 'V3' || name === '2') {
-                            const humiEl = document.getElementById('humi-value');
-                            if (humiEl) humiEl.innerText = Math.round(value);
-                        }
-                    });
-                });
-
-                eraWidget.ready();
-            } catch (err) {
-                console.error("Lỗi khởi tạo:", err);
-            }
-        }
-    </script>
 </body>
 </html>

@@ -6,84 +6,112 @@ const char* password = "YOUR_PASS";
 
 WebServer server(80);
 
-#define LED_PIN 2   // đổi theo chân bạn dùng
+#define LED_PIN 2
 
-// ===== HTML giao diện =====
-String webpage = R"rawliteral(
+// ===== HTML =====
+const char webpage[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Display</title>
+<title>Smart IoT</title>
 
 <style>
 body {
-    background: #dfe6e9;
-    font-family: Arial;
+    margin: 0;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    background: #dfe6e9;
+    font-family: Arial, sans-serif;
 }
-.card {
-    background: white;
+
+#card {
+    width: 300px;
     padding: 20px;
     border-radius: 20px;
-    width: 300px;
-    text-align: center;
+    background: #ffffff;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    text-align: center;
 }
-.info {
+
+#date {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+#info {
     display: flex;
     justify-content: space-between;
     margin: 10px 0;
 }
-.time {
+
+.value {
+    font-size: 18px;
+}
+
+#clock {
     font-size: 40px;
     font-weight: bold;
+    margin: 15px 0;
 }
-.control {
-    margin-top: 15px;
+
+#control {
+    margin-top: 10px;
 }
-button {
+
+#ledBtn {
     padding: 10px 20px;
+    font-size: 16px;
     border: none;
     border-radius: 10px;
-    font-size: 16px;
-    cursor: pointer;
     background: red;
     color: white;
+    cursor: pointer;
 }
-button.on {
+
+#ledBtn.on {
     background: green;
 }
 </style>
-
 </head>
 
 <body>
 
-<div class="card">
-    <h3>10/04/2026</h3>
+<div id="card">
 
-    <div class="info">
-        <span>🌡 33°C</span>
-        <span>💧 49%</span>
+    <div id="date">10/04/2026</div>
+
+    <div id="info">
+        <div id="temp" class="value">🌡 33°C</div>
+        <div id="humi" class="value">💧 49%</div>
     </div>
 
-    <div class="time" id="clock">00:00</div>
+    <div id="clock">00:00</div>
 
-    <div class="control">
-        <button id="ledBtn" onclick="toggleLED()">LED OFF</button>
+    <div id="control">
+        <button id="ledBtn">LED OFF</button>
     </div>
+
 </div>
 
 <script>
 let ledState = false;
 
-function toggleLED() {
+// ===== CLOCK =====
+setInterval(() => {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    document.getElementById("clock").innerText = h + ":" + m;
+}, 1000);
+
+// ===== LED CONTROL =====
+document.getElementById("ledBtn").addEventListener("click", () => {
     ledState = !ledState;
+
     const btn = document.getElementById("ledBtn");
 
     if (ledState) {
@@ -95,22 +123,14 @@ function toggleLED() {
         btn.classList.remove("on");
         fetch("/led?state=off");
     }
-}
-
-// Clock realtime
-setInterval(() => {
-    const now = new Date();
-    let h = now.getHours().toString().padStart(2,'0');
-    let m = now.getMinutes().toString().padStart(2,'0');
-    document.getElementById("clock").innerText = h + ":" + m;
-}, 1000);
+});
 </script>
 
 </body>
 </html>
 )rawliteral";
 
-// ===== ROUTES =====
+// ===== ROUTE =====
 void handleRoot() {
   server.send(200, "text/html", webpage);
 }
@@ -118,11 +138,8 @@ void handleRoot() {
 void handleLED() {
   String state = server.arg("state");
 
-  if (state == "on") {
-    digitalWrite(LED_PIN, HIGH);
-  } else {
-    digitalWrite(LED_PIN, LOW);
-  }
+  if (state == "on") digitalWrite(LED_PIN, HIGH);
+  else digitalWrite(LED_PIN, LOW);
 
   server.send(200, "text/plain", "OK");
 }
@@ -130,17 +147,11 @@ void handleLED() {
 // ===== SETUP =====
 void setup() {
   Serial.begin(115200);
-
   pinMode(LED_PIN, OUTPUT);
 
   WiFi.begin(ssid, password);
-  Serial.print("Connecting...");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
+  while (WiFi.status() != WL_CONNECTED) delay(500);
 
-  Serial.println("\nConnected!");
   Serial.println(WiFi.localIP());
 
   server.on("/", handleRoot);

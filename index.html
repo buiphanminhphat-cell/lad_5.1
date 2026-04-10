@@ -1,140 +1,155 @@
+#include <WiFi.h>
+#include <WebServer.h>
+
+const char* ssid = "YOUR_WIFI";
+const char* password = "YOUR_PASS";
+
+WebServer server(80);
+
+#define LED_PIN 2   // đổi theo chân bạn dùng
+
+// ===== HTML giao diện =====
+String webpage = R"rawliteral(
 <!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Smart Display</title>
+
 <style>
-    body {
-        background: #dfe6ee;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        font-family: 'Segoe UI', Tahoma, sans-serif;
-    }
-
-    .card {
-        width: 420px;
-        background: linear-gradient(145deg, #eef3f8, #d6dde5);
-        border-radius: 20px;
-        padding: 20px;
-        box-shadow: 10px 10px 20px rgba(0,0,0,0.2),
-                    -10px -10px 20px rgba(255,255,255,0.7);
-    }
-
-    .top {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 14px;
-        color: #333;
-    }
-
-    .date {
-        font-size: 28px;
-        font-weight: bold;
-    }
-
-    .icons {
-        font-size: 20px;
-    }
-
-    hr {
-        margin: 15px 0;
-        border: none;
-        border-top: 1px solid #aaa;
-    }
-
-    .middle {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .temp {
-        font-size: 50px;
-    }
-
-    .humidity {
-        font-size: 50px;
-    }
-
-    .bottom {
-        text-align: center;
-        font-size: 70px;
-        font-weight: bold;
-    }
+body {
+    background: #dfe6e9;
+    font-family: Arial;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 20px;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+.info {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+}
+.time {
+    font-size: 40px;
+    font-weight: bold;
+}
+.control {
+    margin-top: 15px;
+}
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    background: red;
+    color: white;
+}
+button.on {
+    background: green;
+}
 </style>
+
 </head>
+
 <body>
 
 <div class="card">
-    <div class="top">
-        <div>
-            <div>DAY &nbsp;&nbsp;&nbsp; MONTH &nbsp;&nbsp;&nbsp; YEAR</div>
-            <div class="date" id="date">--/--/----</div>
-        </div>
-        <div class="icons">📶 🔋</div>
+    <h3>10/04/2026</h3>
+
+    <div class="info">
+        <span>🌡 33°C</span>
+        <span>💧 49%</span>
     </div>
 
-    <hr>
+    <div class="time" id="clock">00:00</div>
 
-    <div class="middle">
-        <div class="temp">🌡️ <span id="nhietDo">--</span></div>
-        <div class="humidity">💧 <span id="doAm">--</span></div>
+    <div class="control">
+        <button id="ledBtn" onclick="toggleLED()">LED OFF</button>
     </div>
-
-    <hr>
-
-    <div class="bottom" id="time">--:--</div>
 </div>
 
-<script src="https://www.unpkg.com/@eohjsc/era-widget@1.1.3/src/index.js"></script>
 <script>
-    const temp = document.getElementById('nhietDo');
-    const humi = document.getElementById('doAm');
-    const timeEl = document.getElementById('time');
-    const dateEl = document.getElementById('date');
+let ledState = false;
 
-    let configTemp = null, configHumi = null;
+function toggleLED() {
+    ledState = !ledState;
+    const btn = document.getElementById("ledBtn");
 
-    const eraWidget = new EraWidget();
-    eraWidget.init({
-      needRealtimeConfigs: true,
-      maxRealtimeConfigsCount: 2,
-
-      onConfiguration: (configuration) => {
-        configTemp = configuration.realtime_configs[0];
-        configHumi = configuration.realtime_configs[1];
-      },
-
-      onValues: (values) => {
-        if (configTemp && values[configTemp.id]) {
-            temp.innerHTML = values[configTemp.id].value + '°C';
-        }
-        if (configHumi && values[configHumi.id]) {
-            humi.innerHTML = values[configHumi.id].value + '%';
-        }
-      }
-    });
-
-    // Clock realtime
-    function updateClock() {
-        const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const year = now.getFullYear();
-
-        timeEl.innerHTML = `${hours}:${minutes}`;
-        dateEl.innerHTML = `${day}/${month}/${year}`;
+    if (ledState) {
+        btn.innerText = "LED ON";
+        btn.classList.add("on");
+        fetch("/led?state=on");
+    } else {
+        btn.innerText = "LED OFF";
+        btn.classList.remove("on");
+        fetch("/led?state=off");
     }
+}
 
-    setInterval(updateClock, 1000);
-    updateClock();
+// Clock realtime
+setInterval(() => {
+    const now = new Date();
+    let h = now.getHours().toString().padStart(2,'0');
+    let m = now.getMinutes().toString().padStart(2,'0');
+    document.getElementById("clock").innerText = h + ":" + m;
+}, 1000);
 </script>
 
 </body>
 </html>
+)rawliteral";
+
+// ===== ROUTES =====
+void handleRoot() {
+  server.send(200, "text/html", webpage);
+}
+
+void handleLED() {
+  String state = server.arg("state");
+
+  if (state == "on") {
+    digitalWrite(LED_PIN, HIGH);
+  } else {
+    digitalWrite(LED_PIN, LOW);
+  }
+
+  server.send(200, "text/plain", "OK");
+}
+
+// ===== SETUP =====
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(LED_PIN, OUTPUT);
+
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting...");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\nConnected!");
+  Serial.println(WiFi.localIP());
+
+  server.on("/", handleRoot);
+  server.on("/led", handleLED);
+
+  server.begin();
+}
+
+// ===== LOOP =====
+void loop() {
+  server.handleClient();
+}
